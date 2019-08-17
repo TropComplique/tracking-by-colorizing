@@ -2,7 +2,7 @@ import io
 import os
 import cv2
 from PIL import Image
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import numpy as np
 import shutil
 from tqdm import tqdm
@@ -13,7 +13,7 @@ OUTPUT_FOLDER = 'data/shards/'
 MIN_DIMENSION = 256
 FPS = 6
 
-# ENCODER = np.load('encoder.npy')
+ENCODER = np.load('encoder.npy')
 # it has shape [256, 256] and type uint8
 
 
@@ -61,7 +61,7 @@ def to_bytes(array, image_format):
 def write_frames(video_path, shard_path):
 
     cap = cv2.VideoCapture(video_path)
-    writer = tf.python_io.TFRecordWriter(shard_path)
+    writer = tf.io.TFRecordWriter(shard_path)
 
     fps = int(cap.get(cv2.CAP_PROP_FPS))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -95,7 +95,7 @@ def write_frames(video_path, shard_path):
 
 def main():
 
-    names = os.listdir(VIDEOS_PATH)[:10]
+    names = os.listdir(VIDEOS_PATH)
     names = sorted(names)
     print('Number of videos:', len(names))
 

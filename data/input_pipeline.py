@@ -1,8 +1,15 @@
 import tensorflow.compat.v1 as tf
 
 
-NUM_FRAMES = 4
-SIZE = 256
+"""
+I assume that each file represents a video.
+All videos have minimal dimension equal to 256 and fps equal to 6.
+Median video length is ~738 frames.
+"""
+
+
+NUM_FRAMES = 4  # must be greater or equal to 2
+SIZE = 256  # must be less or equal to 256
 
 
 class Pipeline:
@@ -18,6 +25,7 @@ class Pipeline:
 
         dataset = tf.data.Dataset.from_tensor_slices(filenames)
         dataset = dataset.shuffle(len(filenames)) if is_training else dataset
+        dataset = dataset.repeat(None if is_training else 1)
 
         def get_subdataset(f):
             dataset = tf.data.TFRecordDataset(f)
@@ -28,16 +36,16 @@ class Pipeline:
             return dataset
 
         dataset = dataset.flat_map(get_subdataset)
-        dataset = dataset.shuffle(10000) if is_training else dataset
+        dataset = dataset.shuffle(20000) if is_training else dataset
         dataset = dataset.batch(batch_size, drop_remainder=True)
-        dataset = dataset.repeat(None if is_training else 1)
-        dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
-        # tf.data.experimental.AUTOTUNE
+        dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
 
         self.dataset = dataset
 
     def parse_and_preprocess(self, examples):
         """
+        Arguments:
+            examples: a string tensor with shape [NUM_FRAMES].
         Returns:
             a uint8 tensor with shape [NUM_FRAMES, SIZE, SIZE, 2].
         """
